@@ -62,6 +62,7 @@ Public Class UI
                 If Database.updateIncdients() Then
                     db.UpdateDatabase(Database)
                     ProcessingCalls = False
+                    firemed.Algorithm(Database)
                 Else
                     ProcessingCalls = False
                 End If
@@ -73,6 +74,8 @@ Public Class UI
                 Dim DBtmp As New Oregon_911_Mainframe.incidents
                 If DBtmp.updateIncdients() Then
                     db.UpdateDatabase(DBtmp)
+                    ProcessingCalls = False
+                    firemed.Algorithm(DBtmp)
                 End If
             End If
             System.Threading.Thread.Sleep(5000)
@@ -87,7 +90,8 @@ Public Class UI
                         ProcessingCalls = True
 
                         places.Algorithm(Database)
-                        firemed.Algorithm(Database)
+
+                        ' firemed.Algorithm(Database)
                         lifeflight.Algorithm(Database)
                         cadalerts.Algorithm(Database)
 

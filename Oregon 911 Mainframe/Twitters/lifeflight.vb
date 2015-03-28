@@ -30,6 +30,7 @@ Module lifeflight
                                     StandDown = True
                                 Else
                                     Standby = True
+                                    StandDown = False
                                     Helicopters += 1
                                 End If
                             ElseIf unit.getUnit.ToUpper.Contains("LIFE") Then
@@ -38,9 +39,11 @@ Module lifeflight
                                 Else
                                     If (unit.getTime(1) = NULL = False Or unit.getTime(2) = NULL = False) Then
                                         Activated = True
+                                        StandDown = False
                                         Helicopters += 1
                                     Else
                                         Standby = True
+                                        StandDown = False
                                         Helicopters += 1
                                     End If
                                 End If
@@ -50,9 +53,11 @@ Module lifeflight
                                 Else
                                     If (unit.getTime(1) = NULL = False Or unit.getTime(2) = NULL = False) Then
                                         Activated = True
+                                        StandDown = False
                                         Helicopters += 1
                                     Else
                                         Standby = True
+                                        StandDown = False
                                         Helicopters += 1
                                     End If
                                 End If
@@ -64,10 +69,12 @@ Module lifeflight
                                     If (unit.getTime(1) = NULL = False Or unit.getTime(2) = NULL = False) Then
                                         Activated = True
                                         Reach = True
+                                        StandDown = False
                                         Helicopters += 1
                                     Else
                                         Standby = True
                                         Reach = True
+                                        StandDown = False
                                         Helicopters += 1
                                     End If
                                 End If
@@ -91,6 +98,7 @@ Module lifeflight
                                 End If
                             End If
                         ElseIf StandDown Then
+                            ' If Not CheckStandDown(incident.getGUID, incident.getCounty) Then
                             If CheckCall(FlagsRaw, flags, "LFSTANDWN") Then
                                 If Reach Then
                                     SendAlert("REACH STAND DOWN for ", "LFSTANDWN", "helicopter.png", incident)
@@ -98,6 +106,7 @@ Module lifeflight
                                     SendAlert("STAND DOWN for ", "LFSTANDWN", "helicopter.png", incident)
                                 End If
                             End If
+                            'End If
                         End If
 
                     End If
@@ -113,6 +122,16 @@ Module lifeflight
             Utilities.Log("error", "lifeflight.vb: " & ex.Message & " | " & frame.ToString)
         End Try
     End Sub
+    Private Function CheckStandDown(ByVal GUID, county) As Boolean
+        Dim result As JArray = API.Query("select onscene from oregon911_cad.pdx911_units WHERE GUID = '" & GUID & "' AND county ='" & county & "' and (unit LIKE 'LF%' OR unit like 'LIFE%' OR unit like 'REACH%' or unit LIKE 'LFSTBY' ")
+        If Not IsNothing(result) Then
+            If result.Item(0).Item("onscene") Then
+                Return False
+            End If
+        End If
+        Return True
+    End Function
+
     Private Function SendAlert(ByVal Responce As String, EventID As String, icon As String, incident As calls) As Boolean
         Dim countyIcon
         If incident.getCounty = "WCCCA" Then

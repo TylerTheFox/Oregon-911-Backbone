@@ -357,14 +357,19 @@ Public Class incidents
                     AddOrUpdateCall(calltmp)
 
                     For UI As Integer = 0 To UnitList(i).UnitList.Count - 1
+                        UnitList(i).UnitList(UI).setGUID(calltmp.getGUID)
+                        UnitList(i).UnitList(UI).setCounty(calltmp.getCounty)
+
                         Dim CACHED_TIME As New List(Of String)
                         Dim NEW_TIME As New List(Of String)
                         For Each incident In database
-                            For Each U In incident.IncidentsUnits
-                                If U.getUnit = UnitList(i).UnitList(UI).getGUID Then
-                                    CACHED_TIME = U.getTime
-                                End If
-                            Next
+                            If incident.getGUID = UnitList(i).UnitList(UI).getGUID And incident.getCounty = UnitList(i).UnitList(UI).getCounty Then
+                                For Each U In incident.IncidentsUnits
+                                    If UnitList(i).UnitList(UI).getUnit = U.getUnit Then
+                                        CACHED_TIME = U.getTime
+                                    End If
+                                Next
+                            End If
                         Next
 
                         If CACHED_TIME.Count = 0 Then
@@ -400,11 +405,7 @@ Public Class incidents
                             NEW_TIME.Add("00:00:00")
                             NEW_TIME.Add("00:00:00")
                         End If
-
                         UnitList(i).UnitList(UI).setTime(NEW_TIME)
-                        UnitList(i).UnitList(UI).setGUID(calltmp.getGUID)
-                        UnitList(i).UnitList(UI).setCounty(calltmp.getCounty)
-
                         ' OK because this was setup originally to handle units on a different page
                         ' We need to search for the call in the database.
 
