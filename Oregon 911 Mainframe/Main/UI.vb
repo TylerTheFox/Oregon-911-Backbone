@@ -43,11 +43,12 @@ Public Class UI
             Next
             Dim listeners As Integer = 0
             Try
-                listeners = Utilities.HTTP("http://127.0.0.1/listeners.php", "POST", "")
+                '  listeners = Utilities.HTTP("http://127.0.0.1/listeners.php", "POST", "")
             Catch ex As Exception
 
             End Try
             ToolStripStatusLabel1.Text = "Multnomah County: " & M & " Washington County: " & W & " Clackamas County: " & C & " Total: " & C + W + M & " Total Units: " & U & " || Radio listeners " & listeners
+            System.Threading.Thread.Sleep(500)
         End If
     End Sub
     Dim hi = "h"

@@ -219,8 +219,8 @@ Public Module Utilities
 
         Return output
     End Function
-    Public Function CreateUnitURL(ByVal GUID As Integer, ByVal county As Char)
-        Return UNIT_URL & GUID & "&county=" & county
+    Public Function CreateUnitURL(ByVal GUID As Integer, ByVal county As Char, ByVal type As Char)
+        Return UNIT_URL & GUID & "&county=" & county & "&type=" & type
     End Function
     Function getDistance(ByVal LATLON_FROM As List(Of Double), ByVal LATLON_TO As List(Of Double))
         Dim pi80 = Math.PI / 180
@@ -262,11 +262,15 @@ Public Module Utilities
     End Function
 
     Public Sub Log(ByVal folder As String, ByVal message As String)
-        Dim dir = "Logs\" & folder
-        If Not My.Computer.FileSystem.DirectoryExists(dir) Then
-            My.Computer.FileSystem.CreateDirectory(dir)
-        End If
-        My.Computer.FileSystem.WriteAllText("Logs\" & folder & "\LOG " & DateAndTime.Now.ToString("yyyy-MM-dd") & ".txt", message & vbNewLine, True)
+        Try
+            Dim dir = "Logs\" & folder
+            If Not My.Computer.FileSystem.DirectoryExists(dir) Then
+                My.Computer.FileSystem.CreateDirectory(dir)
+            End If
+            My.Computer.FileSystem.WriteAllText("Logs\" & folder & "\LOG " & DateAndTime.Now.ToString("yyyy-MM-dd") & ".txt", message & vbNewLine, True)
+        Catch ex As Exception
+
+        End Try
     End Sub
 
 

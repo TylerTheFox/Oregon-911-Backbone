@@ -111,7 +111,7 @@ Module cadalerts
             End If
             Dim result = API.Query("UPDATE oregon911_cad.pdx911_calls SET flags=concat(ifnull(flags,''), '" & EventID & ";') WHERE GUID = '" & incident.getGUID & "' AND county ='" & incident.getCounty & "'")
             If Not IsNothing(result) Then
-                API.CADAlerts(Responce & " " & incident.getAddress & " - " & incident.getCallType & " - " & incident.getUnits, incident.getGeo(0), incident.getGeo(1), Utilities.CreateUnitURL(incident.getGUID, incident.getCounty))
+                API.CADAlerts(Responce & " " & incident.getAddress & " - " & incident.getCallType & " - " & incident.getUnits, incident.getGeo(0), incident.getGeo(1), Utilities.CreateUnitURL(incident.getGUID, incident.getCounty, incident.getType))
                 Return True
             End If
         Else

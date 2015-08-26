@@ -4,6 +4,7 @@ Module db
     Dim database As incidents
 
     Public Sub UpdateDatabase(ByRef db As incidents)
+        Dim PoliceStations = {"WX", "W81", "W80", "W71", "W70", "W61", "W60", "W51", "W50", "W41", "W40", "W31", "W30", "W21", "W20", "U4", "U3", "U2", "U1", "T5", "T4", "T3", "T2", "T1", "S3", "S2", "S1", "N1", "K1", "H5", "H4", "H3", "H2", "H1", "G1", "F2", "F1", "C3", "C2", "B4", "B3", "B2", "B1", "A3"}
         Try
             database = db
             Dim t = DateTime.Now.ToString("HH:mm:ss")
@@ -52,16 +53,20 @@ Module db
 
                         Dim iconRAW As JArray
                         Dim icon As String
+                        Dim isPoliceStation As Boolean = False
+                        For Each PoliceStation In PoliceStations
+                            If incident.getStation = PoliceStation Then
+                                isPoliceStation = True
+                            End If
+                        Next
                         If incident.getCounty = "W" And incident.getCallType = "TRF ACC, NON-INJ" Then
                             incident.setType("P")
                             icon = "police_caraccident.png"
                         ElseIf incident.getCounty = "M" And incident.getType = "P" Then
                             icon = "police.png"
-
                         ElseIf incident.getCounty = "M" And incident.getType = "F" Then
                             icon = "fire.png"
                         Else
-
                             iconRAW = API.GetCallIcon(incident)
 
                             If Not IsNothing(iconRAW) Then
@@ -69,92 +74,106 @@ Module db
                                     incident.setType(iconRAW.Item(0).Item("type"))
                                     icon = iconRAW.Item(0).Item("icon")
                                 Else
+                                    If isPoliceStation Then
+                                        incident.setType("P")
+                                        icon = "police_general.png"
+                                    Else
+                                        incident.setType("F")
+                                        icon = "general.png"
+                                    End If
+                                End If
+                            Else
+                                If isPoliceStation Then
+                                    incident.setType("P")
+                                    icon = "police_general.png"
+                                Else
                                     incident.setType("F")
                                     icon = "general.png"
                                 End If
-                            Else
-                                incident.setType("F")
-                                icon = "general.png"
                             End If
 
                         End If
 
-                        Dim found = False
-                        For i = 0 To PITS.Count - 1
-                            If Not PITS.Item(0).ToString = "NONE" Then
-                                If PITS.Item(i).Item("GUID") = incident.getGUID And PITS.Item(i).Item("county") = incident.getCounty Then
-                                    found = True
-                                    API.Query("UPDATE oregon911_cad.pdx911_calls SET callSum='" & incident.getCallType & "', unitcont='" & incident.GetUnitCount & "', address='" & incident.getAddress & "', units='" & incident.getUnits & "', lat='" & incident.getGeo(0) & "', lon='" & incident.getGeo(1) & "' WHERE GUID='" & incident.getGUID & "' and county='" & incident.getCounty & "'")
+                If isPoliceStation Then
+                    incident.setType("P")
+                End If
 
-                                    Dim UnitStr = ""
-                                    For Each unit In incident.IncidentsUnits
-                                        UnitStr += "'" & unit.getUnit & "',"
-                                        Dim unit_found As Boolean = False
-                                        If Not IsNothing(UnitsRaw) Then
-                                            If Not UnitsRaw.Item(0).ToString = "NONE" Then
-                                                For index = 0 To UnitsRaw.Count - 1
-                                                    If UnitsRaw.Item(index).Item("GUID") = unit.getGUID And UnitsRaw.Item(index).Item("county") = unit.getCounty And UnitsRaw.Item(index).Item("unit") = unit.getUnit Then
-                                                        unit_found = True
-                                                        '    If unit.getCounty = "M" Then
-                                                        If Not unit.getTime(3) = "00:00:00" Then
-                                                            API.Query("UPDATE oregon911_cad.pdx911_units SET type = '" & incident.getType() & "', agency='" & unit.getAgency & "', county='" & unit.getCounty & "', station='" & unit.getStation & "', clear='" & unit.getTime(3) & "' WHERE GUID='" & unit.getGUID & "' AND unit='" & unit.getUnit & "' AND county='" & unit.getCounty & "'")
-                                                        ElseIf Not unit.getTime(2) = "00:00:00" Then
-                                                            API.Query("UPDATE oregon911_cad.pdx911_units SET type = '" & incident.getType() & "', agency='" & unit.getAgency & "', county='" & unit.getCounty & "', station='" & unit.getStation & "', onscene='" & unit.getTime(2) & "' WHERE GUID='" & unit.getGUID & "' AND unit='" & unit.getUnit & "' AND county='" & unit.getCounty & "'")
-                                                        ElseIf Not unit.getTime(1) = "00:00:00" Then
-                                                            API.Query("UPDATE oregon911_cad.pdx911_units SET type = '" & incident.getType() & "', agency='" & unit.getAgency & "', county='" & unit.getCounty & "', station='" & unit.getStation & "', enroute='" & unit.getTime(1) & "' WHERE GUID='" & unit.getGUID & "' AND unit='" & unit.getUnit & "' AND county='" & unit.getCounty & "'")
-                                                        ElseIf Not unit.getTime(0) = "00:00:00" Then
-                                                            API.Query("UPDATE oregon911_cad.pdx911_units SET type = '" & incident.getType() & "', agency='" & unit.getAgency & "', county='" & unit.getCounty & "', station='" & unit.getStation & "', dispatched='" & unit.getTime(0) & "', enroute='" & unit.getTime(1) & "', onscene='" & unit.getTime(2) & "', clear='" & unit.getTime(3) & "' WHERE GUID='" & unit.getGUID & "' AND unit='" & unit.getUnit & "' AND county='" & unit.getCounty & "'")
-                                                        End If
-                                                        'Else
-                                                        '     API.Query("UPDATE oregon911_cad.pdx911_units SET type = '" & incident.getType() & "', agency='" & unit.getAgency & "', county='" & unit.getCounty & "', station='" & unit.getStation & "', dispatched='" & unit.getTime(0) & "', enroute='" & unit.getTime(1) & "', onscene='" & unit.getTime(2) & "', clear='" & unit.getTime(3) & "' WHERE GUID='" & unit.getGUID & "' AND unit='" & unit.getUnit & "' AND county='" & unit.getCounty & "'")
-                                                        ' End If
-                                                    End If
-                                                Next
+                Dim found = False
+                For i = 0 To PITS.Count - 1
+                    If Not PITS.Item(0).ToString = "NONE" Then
+                        If PITS.Item(i).Item("GUID") = incident.getGUID And PITS.Item(i).Item("county") = incident.getCounty Then
+                            found = True
+                            API.Query("UPDATE oregon911_cad.pdx911_calls SET callSum='" & incident.getCallType & "', unitcont='" & incident.GetUnitCount & "', address='" & incident.getAddress & "', units='" & incident.getUnits & "', lat='" & incident.getGeo(0) & "', lon='" & incident.getGeo(1) & "' WHERE GUID='" & incident.getGUID & "' and county='" & incident.getCounty & "'")
+
+                            Dim UnitStr = ""
+                            For Each unit In incident.IncidentsUnits
+                                UnitStr += "'" & unit.getUnit & "',"
+                                Dim unit_found As Boolean = False
+                                If Not IsNothing(UnitsRaw) Then
+                                    If Not UnitsRaw.Item(0).ToString = "NONE" Then
+                                        For index = 0 To UnitsRaw.Count - 1
+                                            If UnitsRaw.Item(index).Item("GUID") = unit.getGUID And UnitsRaw.Item(index).Item("county") = unit.getCounty And UnitsRaw.Item(index).Item("unit") = unit.getUnit Then
+                                                unit_found = True
+                                                '    If unit.getCounty = "M" Then
+                                                If Not unit.getTime(3) = "00:00:00" Then
+                                                    API.Query("UPDATE oregon911_cad.pdx911_units SET type = '" & incident.getType() & "', agency='" & unit.getAgency & "', county='" & unit.getCounty & "', station='" & unit.getStation & "', clear='" & unit.getTime(3) & "' WHERE GUID='" & unit.getGUID & "' AND unit='" & unit.getUnit & "' AND county='" & unit.getCounty & "'")
+                                                ElseIf Not unit.getTime(2) = "00:00:00" Then
+                                                    API.Query("UPDATE oregon911_cad.pdx911_units SET type = '" & incident.getType() & "', agency='" & unit.getAgency & "', county='" & unit.getCounty & "', station='" & unit.getStation & "', onscene='" & unit.getTime(2) & "' WHERE GUID='" & unit.getGUID & "' AND unit='" & unit.getUnit & "' AND county='" & unit.getCounty & "'")
+                                                ElseIf Not unit.getTime(1) = "00:00:00" Then
+                                                    API.Query("UPDATE oregon911_cad.pdx911_units SET type = '" & incident.getType() & "', agency='" & unit.getAgency & "', county='" & unit.getCounty & "', station='" & unit.getStation & "', enroute='" & unit.getTime(1) & "' WHERE GUID='" & unit.getGUID & "' AND unit='" & unit.getUnit & "' AND county='" & unit.getCounty & "'")
+                                                ElseIf Not unit.getTime(0) = "00:00:00" Then
+                                                    API.Query("UPDATE oregon911_cad.pdx911_units SET type = '" & incident.getType() & "', agency='" & unit.getAgency & "', county='" & unit.getCounty & "', station='" & unit.getStation & "', dispatched='" & unit.getTime(0) & "', enroute='" & unit.getTime(1) & "', onscene='" & unit.getTime(2) & "', clear='" & unit.getTime(3) & "' WHERE GUID='" & unit.getGUID & "' AND unit='" & unit.getUnit & "' AND county='" & unit.getCounty & "'")
+                                                End If
+                                                'Else
+                                                '     API.Query("UPDATE oregon911_cad.pdx911_units SET type = '" & incident.getType() & "', agency='" & unit.getAgency & "', county='" & unit.getCounty & "', station='" & unit.getStation & "', dispatched='" & unit.getTime(0) & "', enroute='" & unit.getTime(1) & "', onscene='" & unit.getTime(2) & "', clear='" & unit.getTime(3) & "' WHERE GUID='" & unit.getGUID & "' AND unit='" & unit.getUnit & "' AND county='" & unit.getCounty & "'")
+                                                ' End If
                                             End If
-                                        End If
-                                        If Not unit_found Then
-                                            API.Query("INSERT INTO oregon911_cad.pdx911_units (GUID, county, unit, type, agency, station, dispatched, enroute, onscene, clear) VALUES " & _
-                                                                 " ('" & unit.getGUID & "', '" & unit.getCounty & "', '" & unit.getUnit & "', '" & incident.getType & "', '" & unit.getAgency & "', '" & unit.getStation & "', '" & unit.getTime(0) & "', '" & unit.getTime(1) & "', '" & unit.getTime(2) & "', '" & unit.getTime(3) & "')")
-                                        End If
-                                    Next
-                                    If incident.IncidentsUnits.Count > 0 Then
-                                        UnitStr = UnitStr.Trim().Substring(0, UnitStr.Length - 1)
-                                        API.Query("UPDATE oregon911_cad.pdx911_units SET clear='" & t & "' WHERE GUID ='" & PITS.Item(i).Item("GUID").ToString & "' and county = '" & PITS.Item(i).Item("county").ToString & "' AND unit NOT IN (" & UnitStr & ") AND clear='00:00:00'")
+                                        Next
                                     End If
                                 End If
-                            End If
-                        Next
-
-                        If Not found Then
-                            Dim d As String = Date.Now.Year & "-" & Date.Now.Month & "-" & Date.Now.Day
-                            API.Query("INSERT INTO oregon911_cad.pdx911_calls (GUID, county, callSum, type, priority, unitcont, station, units, address, agency, lat, lon, icon, timestamp) VALUES " & _
-                                                                          "('" & incident.getGUID & "','" & incident.getCounty & "','" & incident.getCallType & "','" & incident.getType & "','" & incident.GetPriority & "','" & incident.GetUnitCount & "','" & incident.getStation & "','" & incident.getUnits & "','" & incident.getAddress & "','" & incident.getAgencyName & "','" & incident.getGeo(0) & "','" & incident.getGeo(1) & "'," & "'/images/" & countyIcon & "/" & icon & "','" & d & " " & incident.getTime()(0) & "')")
-                            For Each unit In incident.IncidentsUnits
-
-                                API.Query("INSERT INTO oregon911_cad.pdx911_units (GUID, county, unit, agency, station, dispatched, enroute, onscene, clear) VALUES " & _
-                                                                      " ('" & unit.getGUID & "', '" & unit.getCounty & "', '" & unit.getUnit & "', '" & unit.getAgency & "', '" & unit.getStation & "', '" & unit.getTime(0) & "', '" & unit.getTime(1) & "', '" & unit.getTime(2) & "', '" & unit.getTime(3) & "')")
+                                If Not unit_found Then
+                                    API.Query("INSERT INTO oregon911_cad.pdx911_units (GUID, county, unit, type, agency, station, dispatched, enroute, onscene, clear) VALUES " & _
+                                                         " ('" & unit.getGUID & "', '" & unit.getCounty & "', '" & unit.getUnit & "', '" & incident.getType & "', '" & unit.getAgency & "', '" & unit.getStation & "', '" & unit.getTime(0) & "', '" & unit.getTime(1) & "', '" & unit.getTime(2) & "', '" & unit.getTime(3) & "')")
+                                End If
                             Next
+                            If incident.IncidentsUnits.Count > 0 Then
+                                UnitStr = UnitStr.Trim().Substring(0, UnitStr.Length - 1)
+                                API.Query("UPDATE oregon911_cad.pdx911_units SET clear='" & t & "' WHERE GUID ='" & PITS.Item(i).Item("GUID").ToString & "' and county = '" & PITS.Item(i).Item("county").ToString & "' AND unit NOT IN (" & UnitStr & ") AND clear='00:00:00'")
+                            End If
                         End If
+                    End If
+                Next
 
-                        Dim CallTypeHistory As List(Of String) = incident.getCallTypeHistory.ToList
-                        For Each calltype_history In CallTypeHistory
-                            If Not IsNothing(API.Query("INSERT INTO `oregon911_cad`.`pdx911_records` (`GUID`, `county`, `callSum`, `address`, `lat`, `lon`, `update`) VALUES ('" & incident.getGUID & "', '" & incident.getCounty & "', '" & calltype_history & "', '" & incident.getAddress & "', '" & incident.getGeo()(0) & "', '" & incident.getGeo()(1) & "', '1')")) Then
-                                incident.RemoveCallTypeHistory(calltype_history)
-                            End If
-                        Next
-                        Dim GPSHistory = incident.getGeoHistory.ToList
-                        For Each geo_history In GPSHistory
-                            If Not IsNothing(API.Query("INSERT INTO `oregon911_cad`.`pdx911_records` (`GUID`, `county`, `callSum`, `address`, `lat`, `lon`, `update`) VALUES ('" & incident.getGUID & "', '" & incident.getCounty & "', '" & incident.getCallType & "', '" & incident.getAddress & "', '" & geo_history(0) & "', '" & geo_history(1) & "', '3')")) Then
-                                incident.removeGeoHistory(geo_history)
-                            End If
-                        Next
+                If Not found Then
+                    Dim d As String = Date.Now.Year & "-" & Date.Now.Month & "-" & Date.Now.Day
+                    API.Query("INSERT INTO oregon911_cad.pdx911_calls (GUID, county, callSum, type, priority, unitcont, station, units, address, agency, lat, lon, icon, timestamp) VALUES " & _
+                                                                  "('" & incident.getGUID & "','" & incident.getCounty & "','" & incident.getCallType & "','" & incident.getType & "','" & incident.GetPriority & "','" & incident.GetUnitCount & "','" & incident.getStation & "','" & incident.getUnits & "','" & incident.getAddress & "','" & incident.getAgencyName & "','" & incident.getGeo(0) & "','" & incident.getGeo(1) & "'," & "'/images/" & countyIcon & "/" & icon & "','" & d & " " & incident.getTime()(0) & "')")
+                    For Each unit In incident.IncidentsUnits
 
-                        Dim AddrHistory As List(Of String) = incident.getAddressHistory.ToList
-                        For Each address_history In AddrHistory
-                            If Not IsNothing(API.Query("INSERT INTO `oregon911_cad`.`pdx911_records` (`GUID`, `county`, `callSum`, `address`, `lat`, `lon`, `update`) VALUES ('" & incident.getGUID & "', '" & incident.getCounty & "', '" & incident.getCallType & "', '" & address_history & "', '" & incident.getGeo()(0) & "', '" & incident.getGeo()(1) & "', '2')")) Then
-                                incident.RemoveAddressHistory(address_history)
-                            End If
-                        Next
+                        API.Query("INSERT INTO oregon911_cad.pdx911_units (GUID, county, unit, agency, station, dispatched, enroute, onscene, clear) VALUES " & _
+                                                              " ('" & unit.getGUID & "', '" & unit.getCounty & "', '" & unit.getUnit & "', '" & unit.getAgency & "', '" & unit.getStation & "', '" & unit.getTime(0) & "', '" & unit.getTime(1) & "', '" & unit.getTime(2) & "', '" & unit.getTime(3) & "')")
+                    Next
+                End If
+
+                Dim CallTypeHistory As List(Of String) = incident.getCallTypeHistory.ToList
+                For Each calltype_history In CallTypeHistory
+                    If Not IsNothing(API.Query("INSERT INTO `oregon911_cad`.`pdx911_records` (`GUID`, `county`, `callSum`, `address`, `lat`, `lon`, `update`) VALUES ('" & incident.getGUID & "', '" & incident.getCounty & "', '" & calltype_history & "', '" & incident.getAddress & "', '" & incident.getGeo()(0) & "', '" & incident.getGeo()(1) & "', '1')")) Then
+                        incident.RemoveCallTypeHistory(calltype_history)
+                    End If
+                Next
+                Dim GPSHistory = incident.getGeoHistory.ToList
+                For Each geo_history In GPSHistory
+                    If Not IsNothing(API.Query("INSERT INTO `oregon911_cad`.`pdx911_records` (`GUID`, `county`, `callSum`, `address`, `lat`, `lon`, `update`) VALUES ('" & incident.getGUID & "', '" & incident.getCounty & "', '" & incident.getCallType & "', '" & incident.getAddress & "', '" & geo_history(0) & "', '" & geo_history(1) & "', '3')")) Then
+                        incident.removeGeoHistory(geo_history)
+                    End If
+                Next
+
+                Dim AddrHistory As List(Of String) = incident.getAddressHistory.ToList
+                For Each address_history In AddrHistory
+                    If Not IsNothing(API.Query("INSERT INTO `oregon911_cad`.`pdx911_records` (`GUID`, `county`, `callSum`, `address`, `lat`, `lon`, `update`) VALUES ('" & incident.getGUID & "', '" & incident.getCounty & "', '" & incident.getCallType & "', '" & address_history & "', '" & incident.getGeo()(0) & "', '" & incident.getGeo()(1) & "', '2')")) Then
+                        incident.RemoveAddressHistory(address_history)
+                    End If
+                Next
 
                     Next
                 End If

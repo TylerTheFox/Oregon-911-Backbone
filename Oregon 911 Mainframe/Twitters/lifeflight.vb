@@ -149,7 +149,7 @@ Module lifeflight
             ElseIf incident.getCounty = "M" Then
                 ccounty = "Multnomah County"
             End If
-            API.PDXLifeflight(Responce & ccounty & " at " & incident.getAddress, incident.getGeo(0), incident.getGeo(1), Utilities.CreateUnitURL(incident.getGUID, incident.getCounty))
+            API.PDXLifeflight(Responce & ccounty & " at " & incident.getAddress, incident.getGeo(0), incident.getGeo(1), Utilities.CreateUnitURL(incident.getGUID, incident.getCounty, incident.getType))
             Return True
         End If
         Return False
