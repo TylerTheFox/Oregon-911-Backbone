@@ -15,6 +15,43 @@ Module API
         End If
         Return False
     End Function
+
+    Public Function WCCCACount() As Integer
+        Dim result = Utilities.HTTP("http://www.api.oregon911.net/api/1.0/?method=WCCCACallCount" & "&type=JSON&jsoncallback=DEMO&key=" & API_KEY, "POST", "")
+        If Not result.ToUpper.Contains("ERROR") Then
+            Dim responce As JObject = JObject.Parse(Utilities.HTTP("http://www.api.oregon911.net/api/1.0/?method=WCCCACallCount" & "&type=JSON&jsoncallback=DEMO&key=" & API_KEY, "POST", ""))
+            Return responce.SelectToken("status").SelectToken("count")
+        End If
+        Return False
+    End Function
+
+    Public Function CCOMCount() As Integer
+        Dim result = Utilities.HTTP("http://www.api.oregon911.net/api/1.0/?method=CCOMCallCount" & "&type=JSON&jsoncallback=DEMO&key=" & API_KEY, "POST", "")
+        If Not result.ToUpper.Contains("ERROR") Then
+            Dim responce As JObject = JObject.Parse(Utilities.HTTP("http://www.api.oregon911.net/api/1.0/?method=CCOMCallCount" & "&type=JSON&jsoncallback=DEMO&key=" & API_KEY, "POST", ""))
+            Return responce.SelectToken("status").SelectToken("count")
+        End If
+        Return False
+    End Function
+
+    Public Function isWCCCAOK() As Integer
+        Dim result = Utilities.HTTP("http://www.api.oregon911.net/api/1.0/?method=isWCCCAOK" & "&type=JSON&jsoncallback=DEMO&key=" & API_KEY, "POST", "")
+        If Not result.ToUpper.Contains("ERROR") Then
+            Dim responce As JObject = JObject.Parse(Utilities.HTTP("http://www.api.oregon911.net/api/1.0/?method=isWCCCAOK" & "&type=JSON&jsoncallback=DEMO&key=" & API_KEY, "POST", ""))
+            Return responce.SelectToken("status").SelectToken("minute")
+        End If
+        Return False
+    End Function
+
+    Public Function isCCOMOK() As Integer
+        Dim result = Utilities.HTTP("http://www.api.oregon911.net/api/1.0/?method=isCCOMOK" & "&type=JSON&jsoncallback=DEMO&key=" & API_KEY, "POST", "")
+        If Not result.ToUpper.Contains("ERROR") Then
+            Dim responce As JObject = JObject.Parse(Utilities.HTTP("http://www.api.oregon911.net/api/1.0/?method=isCCOMOK" & "&type=JSON&jsoncallback=DEMO&key=" & API_KEY, "POST", ""))
+            Return responce.SelectToken("status").SelectToken("minute")
+        End If
+        Return False
+    End Function
+
     Public Function ListCalls() As JArray
         Dim result As String = Utilities.HTTP("http://www.api.oregon911.net/api/1.0/?method=listcalls" & "&type=JSON&jsoncallback=DEMO&key=" & API_KEY, "POST", "")
         Dim JSON As New JArray
