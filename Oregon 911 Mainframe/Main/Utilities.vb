@@ -59,6 +59,8 @@ Public Module Utilities
                 Return "Tualatin Valley Fire & Rescue"
             Case "BTH"
                 Return "Tualatin Valley Fire & Rescue"
+            Case "RHL"
+                Return "Tualatin Valley Fire & Rescue"
             Case "HBM"
                 Return "Hillsboro Fire & Rescue"
             Case "HWH"

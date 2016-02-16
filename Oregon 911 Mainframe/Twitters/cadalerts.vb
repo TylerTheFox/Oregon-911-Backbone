@@ -43,7 +43,7 @@ Module cadalerts
                         ElseIf unit.getUnit = "2ALMM" Then
                             ' MCI
                             If CheckCall(FlagsRaw, flags, "2ALMM") Then
-                                SendAlert("Mass-casualty incident at ", "2ALMM", "EMS.png", incident)
+                                SendAlert("Second Alarm Medical at ", "2ALMM", "EMS.png", incident)
                             End If
                         ElseIf unit.getUnit.Contains("1ALM") Then
                             ' First alarm
